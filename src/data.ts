@@ -1,0 +1,11 @@
+import raw from './data/hsk1.json';
+import strokes from './data/strokes.json';
+import { chunkLessons, LESSONS_PER_UNIT } from './progress';
+export type Char = { c: string; p: string; m: string; ex: string; exp: string; exm: string; n: number };
+export const CHARS: Char[] = raw.chars as Char[];
+export const WORDS = raw.words;
+export const BY_CHAR: Record<string, Char> = Object.fromEntries(CHARS.map(c => [c.c, c]));
+export const LESSONS: Char[][] = chunkLessons(CHARS);
+export const UNITS = chunkLessons(LESSONS.map((_, i) => i), LESSONS_PER_UNIT);
+export const STROKES = strokes as Record<string, unknown>;
+export const UNIT_COLORS = ['#22c55e', '#0ea5e9', '#f59e0b', '#ec4899', '#8b5cf6', '#14b8a6', '#ef4444'];
