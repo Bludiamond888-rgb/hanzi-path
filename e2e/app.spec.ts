@@ -31,7 +31,7 @@ async function writeChar(page: Page, shot?: string, wrongFirst = 0) {
 
 test('map → lesson (watch/trace/quiz) → complete → review', async ({ page }) => {
   await page.goto('./'); await page.evaluate(() => localStorage.clear()); await page.reload();
-  await expect(page.getByText('UNIT 1')).toBeVisible();
+  await expect(page.getByText('第一章')).toBeVisible();
   await page.waitForTimeout(500);
   await page.screenshot({ path: 'screens/01-map.png' });
   await page.getByTestId('lesson-0').click();

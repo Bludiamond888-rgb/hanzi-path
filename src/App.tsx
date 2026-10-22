@@ -1,7 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import confetti from 'canvas-confetti';
 import Writer, { type Mode } from './Writer';
-import { BY_CHAR, CHARS, LESSONS, UNITS, UNIT_COLORS, WORDS, type Char } from './data';
+import { BY_CHAR, CHARS, LESSONS, UNITS, CHAPTERS, WORDS, type Char } from './data';
 import * as P from './progress';
 import { canSpeak, speak } from './speak';
 
@@ -19,8 +18,28 @@ function useSize() {
 
 const Stars = ({ n, big }: { n: number; big?: boolean }) => (
   <span className={big ? 'stars big' : 'stars'} aria-label={`${n} stars`}>
-    {[1, 2, 3].map(i => <span key={i} className={i <= n ? 'on' : ''} style={{ animationDelay: `${i * 0.18}s` }}>★</span>)}
+    {[1, 2, 3].map(i => <span key={i} className={i <= n ? 'on' : ''} style={{ animationDelay: `${0.5 + i * 0.22}s` }}>{big ? '印' : ''}</span>)}
   </span>
+);
+
+/** small hanging-lantern glyph for the streak */
+const Lantern = ({ lit }: { lit: boolean }) => (
+  <svg className="lantern" width="16" height="20" viewBox="0 0 16 20" aria-hidden>
+    <line x1="8" y1="0" x2="8" y2="3" stroke="currentColor" strokeWidth="1.4" />
+    <rect x="4.5" y="3" width="7" height="1.6" rx=".5" fill="currentColor" />
+    <ellipse cx="8" cy="10" rx="6.2" ry="5.6" fill={lit ? '#c8372d' : '#ebe2cf'} stroke="currentColor" strokeWidth="1.3" />
+    <path d="M8 4.6v10.8M4.4 5.8q-1.6 4.2 0 8.4M11.6 5.8q1.6 4.2 0 8.4" stroke={lit ? '#f4d79a' : 'currentColor'} strokeWidth=".8" fill="none" />
+    <rect x="4.5" y="15.4" width="7" height="1.6" rx=".5" fill="currentColor" />
+    <path d="M8 17v3" stroke={lit ? '#b8902f' : 'currentColor'} strokeWidth="1.4" />
+  </svg>
+);
+
+/** ink splash behind the reward seal */
+const InkSplash = () => (
+  <svg className="splash" viewBox="0 0 200 200" aria-hidden>
+    <path d="M100 18c18 4 22 26 40 22s30 14 26 32 16 30 4 44-2 34-22 38-26 22-46 14-34 4-42-14-30-22-22-40-12-34 4-44 10-30 28-30 12-24 30-22z" />
+    <circle cx="176" cy="40" r="7" /><circle cx="24" cy="160" r="9" /><circle cx="186" cy="150" r="4" /><circle cx="18" cy="52" r="5" />
+  </svg>
 );
 
 export default function App() {
@@ -45,10 +64,10 @@ export default function App() {
     <div className="app">
       {(screen.k === 'map' || screen.k === 'about' || screen.k === 'chars') && (
         <header className="top">
-          <div className="brand"><span className="logo">汉</span><div><b>Hanzi Path</b><small>汉字路 · HSK 1</small></div></div>
+          <div className="brand"><span className="logo">汉</span><div><b>汉字路</b><small>Hanzi Path · HSK 1</small></div></div>
           <div className="pills">
-            <span className={'pill streak' + (streak ? ' lit' : '')} title="Daily streak">🔥 {streak}</span>
-            <span className="pill xp" title="Total XP">⚡ {prog.xp}</span>
+            <span className={'pill streak' + (streak ? ' lit' : '')} title="Daily streak"><Lantern lit={streak > 0} /> {streak}</span>
+            <span className="pill xp" title="Ink points (XP)"><i className="mo">墨</i> {prog.xp}</span>
           </div>
         </header>
       )}
@@ -60,10 +79,10 @@ export default function App() {
       {screen.k === 'done' && <Done s={screen} streak={P.currentStreak(prog, today)} go={setScreen} />}
       {(screen.k === 'map' || screen.k === 'about' || screen.k === 'chars') && (
         <nav className="tabs">
-          <button className={screen.k === 'map' ? 'on' : ''} onClick={() => setScreen({ k: 'map' })}><span>🗺️</span>Path</button>
-          <button disabled={!due.length && !weak.length} onClick={() => setScreen({ k: 'review', chars: due.length ? due : weak.slice(0, 10) })}><span>🔁</span>Review{due.length ? <i className="badge">{due.length}</i> : null}</button>
+          <button className={screen.k === 'map' ? 'on' : ''} onClick={() => setScreen({ k: 'map' })}><span>路</span>Path</button>
+          <button disabled={!due.length && !weak.length} onClick={() => setScreen({ k: 'review', chars: due.length ? due : weak.slice(0, 10) })}><span>温</span>Review{due.length ? <i className="badge">{due.length}</i> : null}</button>
           <button className={screen.k === 'chars' ? 'on' : ''} onClick={() => setScreen({ k: 'chars' })}><span>字</span>Chars</button>
-          <button className={screen.k === 'about' ? 'on' : ''} onClick={() => setScreen({ k: 'about' })}><span>⚙️</span>More</button>
+          <button className={screen.k === 'about' ? 'on' : ''} onClick={() => setScreen({ k: 'about' })}><span>更</span>More</button>
         </nav>
       )}
     </div>
@@ -75,7 +94,6 @@ function MapScreen({ prog, due, weak, go }: { prog: P.Progress; due: string[]; w
   const curRef = useRef<HTMLButtonElement>(null);
   useEffect(() => { curRef.current?.scrollIntoView({ block: 'center' }); }, []);
   const done = Object.keys(prog.lessons).length;
-  const offsets = [0, 42, 64, 42, 0, -42, -64, -42];
   return (
     <main className="map">
       <div className="today card">
@@ -83,41 +101,43 @@ function MapScreen({ prog, due, weak, go }: { prog: P.Progress; due: string[]; w
         <div className="bar"><i style={{ width: `${(done / LESSONS.length) * 100}%` }} /></div>
         {(due.length > 0 || weak.length > 0) && (
           <button className="btn small review" onClick={() => go({ k: 'review', chars: due.length ? due : weak.slice(0, 10) })}>
-            🔁 Review {due.length || Math.min(10, weak.length)} {due.length ? 'due' : 'weak'} character{(due.length || weak.length) === 1 ? '' : 's'}
+            Review {due.length || Math.min(10, weak.length)} {due.length ? 'due' : 'weak'} character{(due.length || weak.length) === 1 ? '' : 's'}
           </button>
         )}
       </div>
       {UNITS.map((lessonIdx, u) => {
-        const color = UNIT_COLORS[u % UNIT_COLORS.length];
+        const [cn, title, en] = CHAPTERS[u % CHAPTERS.length];
         const first = LESSONS[lessonIdx[0]][0].c, last = LESSONS[lessonIdx[lessonIdx.length - 1]].slice(-1)[0].c;
         return (
           <section key={u} className="unit">
-            <div className="unit-head" style={{ background: color }}>
-              <small>UNIT {u + 1}</small>
-              <b>{first} … {last}</b>
-              <span>{lessonIdx.reduce((a, i) => a + LESSONS[i].length, 0)} characters</span>
+            <div className="unit-head">
+              <small>CHAPTER {u + 1} · {lessonIdx.reduce((a, i) => a + LESSONS[i].length, 0)} characters</small>
+              <h3><span className="ch-no">{cn}</span>{title}</h3>
+              <span className="ch-en">{en} · {first} … {last}</span>
             </div>
-            <div className="path">
-              {lessonIdx.map((i, k) => {
+            <ol className="scroll">
+              {lessonIdx.map(i => {
                 const open = P.isUnlocked(prog, i), stars = prog.lessons[P.lessonId(i)] ?? 0, cur = i === current;
                 return (
-                  <div key={i} className="node-wrap" style={{ transform: `translateX(${offsets[k % offsets.length]}px)` }}>
-                    {cur && <div className="start-tip">START</div>}
+                  <li key={i} className={'stop' + (open ? ' open' : ' locked') + (cur ? ' cur' : '') + (stars ? ' done' : '')}>
                     <button ref={cur ? curRef : undefined} data-testid={`lesson-${i}`}
-                      className={'node' + (open ? ' open' : ' locked') + (cur ? ' cur' : '') + (stars ? ' done' : '')}
-                      style={open ? { '--c': color } as React.CSSProperties : undefined}
-                      disabled={!open} onClick={() => go({ k: 'lesson', index: i })} aria-label={`Lesson ${i + 1}`}>
-                      <span className="node-char">{open ? LESSONS[i][0].c : '🔒'}</span>
+                      className="tile" disabled={!open} onClick={() => go({ k: 'lesson', index: i })} aria-label={`Lesson ${i + 1}`}>
+                      <span className="node-char">{LESSONS[i][0].c}</span>
+                      {stars > 0 && <span className="yin" aria-hidden>印</span>}
                     </button>
-                    <div className="node-meta">{stars ? <Stars n={stars} /> : <small>{LESSONS[i].map(c => c.c).join(' ')}</small>}</div>
-                  </div>
+                    <div className="stop-meta">
+                      <b>Lesson {i + 1}{cur ? <em> · 现在 now</em> : null}</b>
+                      <small>{LESSONS[i].map(c => c.c).join(' ')}</small>
+                      {stars ? <Stars n={stars} /> : !open ? <small className="lock">locked</small> : null}
+                    </div>
+                  </li>
                 );
               })}
-            </div>
+            </ol>
           </section>
         );
       })}
-      <p className="fine">More HSK levels coming later. 加油!</p>
+      <p className="fine">More HSK levels coming later. 加油! Keep going.</p>
     </main>
   );
 }
@@ -145,14 +165,12 @@ function Lesson({ chars, title, review, onQuit, onFinish }: { chars: Char[]; tit
 
   const onDone = (m: number) => {
     if (mode === 'watch') { setWatched(true); return; }
-    if (mode === 'trace') { setFeedback({ ok: true, text: m === 0 ? 'Perfect trace!' : 'Nice tracing!', m }); return; }
+    if (mode === 'trace') { setFeedback({ ok: true, text: m === 0 ? '完美! Perfect' : '很好! Very good', m }); return; }
     results.current = [...results.current.filter(r => r.char !== ch.c), { char: ch.c, mistakes: m }];
-    const text = m === 0 ? ['Perfect!', 'Amazing!', '太棒了!', 'Flawless!'][ci % 4] : m <= 2 ? 'Great job!' : 'You got it!';
+    const text = m === 0 ? '完美! Perfect' : m <= 2 ? '很好! Very good' : '加油! Keep going';
     setFeedback({ ok: true, text, m });
-    confetti({ particleCount: m === 0 ? 90 : 50, spread: 70, origin: { y: 0.75 }, colors: ['#58cc02', '#ffc800', '#1cb0f6', '#ff4b4b'], disableForReducedMotion: true });
   };
   const next = () => {
-    confetti.reset();
     if (si + 1 < steps.length) setSi(si + 1);
     else if (ci + 1 < chars.length) { setCi(ci + 1); setSi(0); }
     else onFinish(results.current);
@@ -185,13 +203,13 @@ function Lesson({ chars, title, review, onQuit, onFinish }: { chars: Char[]; tit
         <div className="stage-note">
           {mode === 'watch' ? `${ch.n} stroke${ch.n > 1 ? 's' : ''}` :
             miss ? <span className="miss">{miss} mistake{miss > 1 ? 's' : ''}{miss >= (mode === 'trace' ? 2 : 3) ? ' · hint shown' : ''}</span> :
-              mode === 'quiz' ? 'No outline: you can do it!' : 'Follow the grey outline'}
+              mode === 'quiz' ? 'No outline · 加油!' : 'Follow the faint outline'}
         </div>
       </div>
       <div className={'footer' + (feedback ? ' fb' : '')}>
         {feedback ? (
           <div className="feedback" data-testid="feedback">
-            <div className="fb-text"><span className="tick">✓</span>{feedback.text}<small>{mode === 'quiz' ? (feedback.m ? `${feedback.m} mistake${feedback.m > 1 ? 's' : ''}` : 'No mistakes') : ''}</small></div>
+            <div className="fb-text"><span className="tick">{feedback.m === 0 ? '优' : '好'}</span><span className="fb-t"><b>{feedback.text.split(' ')[0]}</b> {feedback.text.split(' ').slice(1).join(' ')}</span><small>{mode === 'quiz' ? (feedback.m ? `${feedback.m} mistake${feedback.m > 1 ? 's' : ''}` : 'No mistakes') : ''}</small></div>
             <button className="btn" onClick={next} data-testid="continue">Continue</button>
           </div>
         ) : mode === 'watch' ? (
@@ -211,27 +229,17 @@ function Lesson({ chars, title, review, onQuit, onFinish }: { chars: Char[]; tit
 }
 
 function Done({ s, streak, go }: { s: Extract<Screen, { k: 'done' }>; streak: number; go: (s: Screen) => void }) {
-  useEffect(() => {
-    const end = Date.now() + 1200;
-    const f = () => {
-      confetti({ particleCount: 6, angle: 60, spread: 60, origin: { x: 0, y: 0.7 }, disableForReducedMotion: true });
-      confetti({ particleCount: 6, angle: 120, spread: 60, origin: { x: 1, y: 0.7 }, disableForReducedMotion: true });
-      if (Date.now() < end) requestAnimationFrame(f);
-    };
-    f();
-    return () => { confetti.reset(); };
-  }, []);
-  const msg = s.stars === 3 ? 'Brilliant writing!' : s.stars === 2 ? 'Great work!' : 'Good effort, keep practicing!';
+  const [cn, en] = s.stars === 3 ? ['完美!', 'Perfect'] : s.stars === 2 ? ['很好!', 'Very good'] : ['加油!', 'Keep going'];
   return (
     <main className="complete" data-testid="done">
-      <div className="trophy">🏆</div>
-      <h1>{s.title}</h1>
-      <p className="sub">{msg}</p>
+      <div className="reveal"><InkSplash /><span className="seal-big">{cn.slice(0, 2)}</span></div>
+      <h1><span className="cn">{cn}</span> {en}</h1>
+      <p className="sub">{s.title}</p>
       <Stars n={s.stars} big />
       <div className="stats">
-        <div className="stat xp"><small>XP EARNED</small><b>+{s.xp}</b></div>
-        <div className="stat acc"><small>MISTAKES</small><b>{s.mistakes}</b></div>
-        <div className="stat st"><small>STREAK</small><b>🔥 {streak}</b></div>
+        <div className="stat xp"><small>墨 INK</small><b>+{s.xp}</b></div>
+        <div className="stat acc"><small>误 MISTAKES</small><b>{s.mistakes}</b></div>
+        <div className="stat st"><small>灯 STREAK</small><b>{streak}</b></div>
       </div>
       <div className="col">
         {s.next !== undefined && <button className="btn" onClick={() => go({ k: 'lesson', index: s.next! })}>Next lesson</button>}
@@ -247,7 +255,7 @@ function CharsScreen({ prog }: { prog: P.Progress }) {
   return (
     <main className="chars">
       <h2>All {CHARS.length} characters</h2>
-      <p className="fine">From the {WORDS.length} HSK 1 words. Tap to watch. Green = practiced, red dot = weak.</p>
+      <p className="fine">From the {WORDS.length} HSK 1 words. Tap to watch. Red mark = practiced, gold dot = weak.</p>
       {sel && (
         <div className="card detail">
           <Writer char={sel.c} mode="watch" size={Math.min(size, 200)} />
@@ -274,7 +282,7 @@ function About({ prog, setProg }: { prog: P.Progress; setProg: (p: P.Progress) =
     setMsg('Backup downloaded.');
   };
   const importIt = async (f: File) => {
-    try { const p = P.parseBackup(await f.text()); setProg(p); setMsg(`Restored: ${p.xp} XP, ${Object.keys(p.lessons).length} lessons.`); }
+    try { const p = P.parseBackup(await f.text()); setProg(p); setMsg(`Restored: ${p.xp} ink, ${Object.keys(p.lessons).length} lessons.`); }
     catch (e) { setMsg('Could not import: ' + (e as Error).message); }
   };
   const stats = useMemo(() => ({ seen: Object.keys(prog.chars).length, weak: P.weakChars(prog).length }), [prog]);
@@ -282,7 +290,7 @@ function About({ prog, setProg }: { prog: P.Progress; setProg: (p: P.Progress) =
     <main className="about">
       <div className="card">
         <h3>Your progress</h3>
-        <p>{prog.xp} XP · best streak {prog.best} day{prog.best === 1 ? "" : "s"} · {stats.seen} characters practiced · {stats.weak} weak</p>
+        <p>{prog.xp} 墨 ink · best streak {prog.best} day{prog.best === 1 ? "" : "s"} · {stats.seen} characters practiced · {stats.weak} weak</p>
         <div className="row">
           <button className="btn small" onClick={exportIt}>⬇ Export backup</button>
           <button className="btn small ghost" onClick={() => file.current?.click()}>⬆ Import</button>
