@@ -13,3 +13,11 @@ export const CHAPTERS: [string, string, string][] = [
   ['第四章', '时光', 'Time & days'], ['第五章', '行路', 'On the road'], ['第六章', '学而时习', 'Study & practice'],
   ['第七章', '远方', 'Far places'],
 ];
+export const ORDER = CHARS.map(c => c.c);
+/** strip tone marks so "ni" finds "nǐ" */
+export const plain = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+export function matches(ch: Char, q: string) {
+  const t = plain(q.trim()); if (!t) return true;
+  return ch.c.includes(q.trim()) || plain(ch.p).replace(/\s/g, '').includes(t.replace(/\s/g, '')) || ch.m.toLowerCase().includes(t);
+}
+export const short = (m: string) => m.split(/;\s*/).slice(0, 2).join('; ').replace(/\s*\(CL:[^)]*\)/g, '');

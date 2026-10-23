@@ -3,9 +3,11 @@ import Writer, { type Mode } from './Writer';
 import { BY_CHAR, CHARS, LESSONS, UNITS, CHAPTERS, WORDS, type Char } from './data';
 import * as P from './progress';
 import { canSpeak, speak } from './speak';
+import Cards, { cardsBadge } from './Cards';
+import * as SRS from './srs';
 
 type Screen =
-  | { k: 'map' } | { k: 'about' } | { k: 'chars' }
+  | { k: 'map' } | { k: 'about' } | { k: 'chars' } | { k: 'cards' }
   | { k: 'lesson'; index: number } | { k: 'review'; chars: string[] }
   | { k: 'done'; stars: number; xp: number; title: string; mistakes: number; count: number; next?: number };
 
@@ -45,8 +47,14 @@ const InkSplash = () => (
 export default function App() {
   const [prog, setProg] = useState<P.Progress>(() => P.load());
   const [screen, setScreen] = useState<Screen>({ k: 'map' });
+  const [cards, setCards] = useState<SRS.State>(() => SRS.load());
   useEffect(() => P.save(prog), [prog]);
-  const today = P.dayKey();
+  useEffect(() => SRS.save(cards), [cards]);
+  const [today, setToday] = useState(P.dayKey());
+  useEffect(() => { const f = () => setToday(P.dayKey()); document.addEventListener('visibilitychange', f); return () => document.removeEventListener('visibilitychange', f); }, []);
+  const tabbed = screen.k === 'map' || screen.k === 'about' || screen.k === 'chars' || screen.k === 'cards';
+  const tab = (s: Screen) => { setScreen(s); window.scrollTo(0, 0); };
+  const cardCount = cardsBadge(cards, today);
   const streak = P.currentStreak(prog, today);
   const due = P.reviewQueue(prog, today);
   const weak = P.weakChars(prog);
@@ -61,8 +69,8 @@ export default function App() {
   };
 
   return (
-    <div className="app">
-      {(screen.k === 'map' || screen.k === 'about' || screen.k === 'chars') && (
+    <div className={'app' + (tabbed ? ' tabbed' : '')}>
+      {tabbed && (
         <header className="top">
           <div className="brand"><span className="logo">汉</span><div><b>汉字路</b><small>Hanzi Path · HSK 1</small></div></div>
           <div className="pills">
@@ -73,16 +81,18 @@ export default function App() {
       )}
       {screen.k === 'map' && <MapScreen prog={prog} due={due} weak={weak} go={setScreen} />}
       {screen.k === 'chars' && <CharsScreen prog={prog} />}
+      {screen.k === 'cards' && <Cards st={cards} setSt={setCards} today={today} />}
       {screen.k === 'about' && <About prog={prog} setProg={setProg} />}
       {screen.k === 'lesson' && <Lesson key={'l' + screen.index} chars={LESSONS[screen.index]} title={`Lesson ${screen.index + 1}`} onQuit={() => setScreen({ k: 'map' })} onFinish={r => finish(r, screen.index)} />}
       {screen.k === 'review' && <Lesson key={'r' + screen.chars.join('')} review chars={screen.chars.map(c => BY_CHAR[c])} title="Review" onQuit={() => setScreen({ k: 'map' })} onFinish={r => finish(r)} />}
       {screen.k === 'done' && <Done s={screen} streak={P.currentStreak(prog, today)} go={setScreen} />}
-      {(screen.k === 'map' || screen.k === 'about' || screen.k === 'chars') && (
+      {tabbed && (
         <nav className="tabs">
-          <button className={screen.k === 'map' ? 'on' : ''} onClick={() => setScreen({ k: 'map' })}><span>路</span>Path</button>
+          <button className={screen.k === 'map' ? 'on' : ''} onClick={() => tab({ k: 'map' })} data-testid="tab-path"><span>路</span>Path</button>
           <button disabled={!due.length && !weak.length} onClick={() => setScreen({ k: 'review', chars: due.length ? due : weak.slice(0, 10) })}><span>温</span>Review{due.length ? <i className="badge">{due.length}</i> : null}</button>
-          <button className={screen.k === 'chars' ? 'on' : ''} onClick={() => setScreen({ k: 'chars' })}><span>字</span>Chars</button>
-          <button className={screen.k === 'about' ? 'on' : ''} onClick={() => setScreen({ k: 'about' })}><span>更</span>More</button>
+          <button className={screen.k === 'cards' ? 'on' : ''} onClick={() => tab({ k: 'cards' })} data-testid="tab-cards"><span>卡</span>Cards{cardCount ? <i className="badge">{cardCount}</i> : null}</button>
+          <button className={screen.k === 'chars' ? 'on' : ''} onClick={() => tab({ k: 'chars' })}><span>字</span>Chars</button>
+          <button className={screen.k === 'about' ? 'on' : ''} onClick={() => tab({ k: 'about' })}><span>更</span>More</button>
         </nav>
       )}
     </div>
@@ -302,6 +312,7 @@ function About({ prog, setProg }: { prog: P.Progress; setProg: (p: P.Progress) =
       <div className="card">
         <h3>How it works</h3>
         <p>Each lesson has about 5 characters. For each one: <b>watch</b> the stroke order, <b>trace</b> it over the outline, then <b>write</b> it from memory. A hint appears after a few missed strokes. Fewer mistakes, more stars. Characters you miss come back in <b>Review</b> sooner (spaced repetition: 1, 2, 4, 7, 15, 30 days).</p>
+        <p><b>Cards</b> are spaced-repetition flashcards (SM-2) for all {CHARS.length} characters: see the meaning, pīnyīn or character, <b>write it</b> on the pad, then grade yourself Again / Hard / Good / Easy. Turn the writing step off in Cards › Settings.</p>
       </div>
       <div className="card credits">
         <h3>About & credits</h3>

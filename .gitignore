@@ -1,5 +1,5 @@
-node_modules
-dist
-screens
-test-results
-playwright-report
+/node_modules/
+/dist/
+/screens/
+/test-results/
+/playwright-report/
