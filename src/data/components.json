@@ -1,0 +1,214 @@
+[
+  {
+    "id": "ren",
+    "form": "人",
+    "variant": "亻",
+    "pinyin": "rén",
+    "meaning": "person",
+    "tip": "Looks like a person walking. As a side radical it becomes 亻 (on the left).",
+    "examples": [
+      "你",
+      "他",
+      "们"
+    ]
+  },
+  {
+    "id": "kou",
+    "form": "口",
+    "pinyin": "kǒu",
+    "meaning": "mouth",
+    "tip": "A square mouth. Often marks speaking, eating, or openings.",
+    "examples": [
+      "吃",
+      "叫",
+      "吗"
+    ]
+  },
+  {
+    "id": "nv",
+    "form": "女",
+    "pinyin": "nǚ",
+    "meaning": "woman",
+    "tip": "Woman / female. Common in family words.",
+    "examples": [
+      "好",
+      "她",
+      "妈"
+    ]
+  },
+  {
+    "id": "zi",
+    "form": "子",
+    "pinyin": "zǐ",
+    "meaning": "child",
+    "tip": "Child / son. With 女 it makes 好 “good”.",
+    "examples": [
+      "好",
+      "字",
+      "学"
+    ]
+  },
+  {
+    "id": "ri",
+    "form": "日",
+    "pinyin": "rì",
+    "meaning": "sun / day",
+    "tip": "A sun with a middle line. Related to time and brightness.",
+    "examples": [
+      "明",
+      "时",
+      "日"
+    ]
+  },
+  {
+    "id": "yue",
+    "form": "月",
+    "pinyin": "yuè",
+    "meaning": "moon / month",
+    "tip": "Moon shape. Also used for body parts in some characters.",
+    "examples": [
+      "明",
+      "朋",
+      "月"
+    ]
+  },
+  {
+    "id": "mu",
+    "form": "木",
+    "pinyin": "mù",
+    "meaning": "wood / tree",
+    "tip": "A tree with roots and branches. Things made of wood often have it.",
+    "examples": [
+      "杯",
+      "桌",
+      "本"
+    ]
+  },
+  {
+    "id": "shui",
+    "form": "水",
+    "variant": "氵",
+    "pinyin": "shuǐ",
+    "meaning": "water",
+    "tip": "Water. As a side radical it becomes three drops 氵.",
+    "examples": [
+      "水",
+      "汉",
+      "没"
+    ]
+  },
+  {
+    "id": "shou",
+    "form": "手",
+    "variant": "扌",
+    "pinyin": "shǒu",
+    "meaning": "hand",
+    "tip": "Hand. As a side radical it becomes 扌 — actions done with the hand (like 打 “to hit”).",
+    "examples": [
+      "打"
+    ]
+  },
+  {
+    "id": "yan",
+    "form": "言",
+    "variant": "讠",
+    "pinyin": "yán",
+    "meaning": "speech",
+    "tip": "Speech / words. Simplified side form is 讠 — talking and language.",
+    "examples": [
+      "说",
+      "语",
+      "话"
+    ]
+  },
+  {
+    "id": "xin",
+    "form": "心",
+    "variant": "忄",
+    "pinyin": "xīn",
+    "meaning": "heart",
+    "tip": "Heart / mind. Feelings and thoughts. Side form is 忄.",
+    "examples": [
+      "想",
+      "怎"
+    ]
+  },
+  {
+    "id": "huo",
+    "form": "火",
+    "pinyin": "huǒ",
+    "meaning": "fire",
+    "tip": "Fire with rising flames. Heat, light, and energy.",
+    "examples": [
+      "火",
+      "点"
+    ]
+  },
+  {
+    "id": "da",
+    "form": "大",
+    "pinyin": "dà",
+    "meaning": "big",
+    "tip": "A person with arms stretched out — big.",
+    "examples": [
+      "大",
+      "太",
+      "天"
+    ]
+  },
+  {
+    "id": "xiao",
+    "form": "小",
+    "pinyin": "xiǎo",
+    "meaning": "small",
+    "tip": "Small — a vertical stroke with two tiny marks.",
+    "examples": [
+      "小",
+      "少"
+    ]
+  },
+  {
+    "id": "yi",
+    "form": "一",
+    "pinyin": "yī",
+    "meaning": "one",
+    "tip": "A single horizontal stroke. The simplest character.",
+    "examples": [
+      "一",
+      "二",
+      "三"
+    ]
+  },
+  {
+    "id": "cao",
+    "form": "艹",
+    "pinyin": "cǎo",
+    "meaning": "grass",
+    "tip": "Grass radical on top. Plants, tea, and flowers.",
+    "examples": [
+      "茶"
+    ]
+  },
+  {
+    "id": "chuo",
+    "form": "辶",
+    "pinyin": "chuò",
+    "meaning": "walk",
+    "tip": "Walking radical. Motion and direction (this, go, path).",
+    "examples": [
+      "这"
+    ]
+  },
+  {
+    "id": "shi",
+    "form": "食",
+    "variant": "饣",
+    "pinyin": "shí",
+    "meaning": "food",
+    "tip": "Food / eat. Side form 饣 appears in eating-related words.",
+    "examples": [
+      "饭",
+      "馆"
+    ]
+  }
+]

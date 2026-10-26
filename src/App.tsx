@@ -4,10 +4,12 @@ import { BY_CHAR, CHARS, LESSONS, UNITS, CHAPTERS, WORDS, type Char } from './da
 import * as P from './progress';
 import { canSpeak, speak } from './speak';
 import Cards, { cardsBadge } from './Cards';
+import Components, { COMPONENTS } from './Components';
+import * as Parts from './parts';
 import * as SRS from './srs';
 
 type Screen =
-  | { k: 'map' } | { k: 'about' } | { k: 'chars' } | { k: 'cards' }
+  | { k: 'map' } | { k: 'about' } | { k: 'chars' } | { k: 'cards' } | { k: 'parts' }
   | { k: 'lesson'; index: number } | { k: 'review'; chars: string[] }
   | { k: 'done'; stars: number; xp: number; title: string; mistakes: number; count: number; next?: number };
 
@@ -82,7 +84,8 @@ export default function App() {
       {screen.k === 'map' && <MapScreen prog={prog} due={due} weak={weak} go={setScreen} />}
       {screen.k === 'chars' && <CharsScreen prog={prog} />}
       {screen.k === 'cards' && <Cards st={cards} setSt={setCards} today={today} />}
-      {screen.k === 'about' && <About prog={prog} setProg={setProg} />}
+      {screen.k === 'about' && <About prog={prog} setProg={setProg} go={setScreen} />}
+      {screen.k === 'parts' && <Components onBack={() => setScreen({ k: 'about' })} />}
       {screen.k === 'lesson' && <Lesson key={'l' + screen.index} chars={LESSONS[screen.index]} title={`Lesson ${screen.index + 1}`} onQuit={() => setScreen({ k: 'map' })} onFinish={r => finish(r, screen.index)} />}
       {screen.k === 'review' && <Lesson key={'r' + screen.chars.join('')} review chars={screen.chars.map(c => BY_CHAR[c])} title="Review" onQuit={() => setScreen({ k: 'map' })} onFinish={r => finish(r)} />}
       {screen.k === 'done' && <Done s={screen} streak={P.currentStreak(prog, today)} go={setScreen} />}
@@ -92,7 +95,7 @@ export default function App() {
           <button disabled={!due.length && !weak.length} onClick={() => setScreen({ k: 'review', chars: due.length ? due : weak.slice(0, 10) })}><span>温</span>Review{due.length ? <i className="badge">{due.length}</i> : null}</button>
           <button className={screen.k === 'cards' ? 'on' : ''} onClick={() => tab({ k: 'cards' })} data-testid="tab-cards"><span>卡</span>Cards{cardCount ? <i className="badge">{cardCount}</i> : null}</button>
           <button className={screen.k === 'chars' ? 'on' : ''} onClick={() => tab({ k: 'chars' })}><span>字</span>Chars</button>
-          <button className={screen.k === 'about' ? 'on' : ''} onClick={() => tab({ k: 'about' })}><span>更</span>More</button>
+          <button className={screen.k === 'about' ? 'on' : ''} onClick={() => tab({ k: 'about' })} data-testid="tab-more"><span>更</span>More</button>
         </nav>
       )}
     </div>
@@ -283,7 +286,7 @@ function CharsScreen({ prog }: { prog: P.Progress }) {
   );
 }
 
-function About({ prog, setProg }: { prog: P.Progress; setProg: (p: P.Progress) => void }) {
+function About({ prog, setProg, go }: { prog: P.Progress; setProg: (p: P.Progress) => void; go: (s: Screen) => void }) {
   const [msg, setMsg] = useState('');
   const file = useRef<HTMLInputElement>(null);
   const exportIt = () => {
@@ -296,8 +299,15 @@ function About({ prog, setProg }: { prog: P.Progress; setProg: (p: P.Progress) =
     catch (e) { setMsg('Could not import: ' + (e as Error).message); }
   };
   const stats = useMemo(() => ({ seen: Object.keys(prog.chars).length, weak: P.weakChars(prog).length }), [prog]);
+  const partsLearned = Parts.learnedCount(Parts.load());
   return (
     <main className="about">
+      <div className="card parts-entry" data-testid="parts-entry">
+        <h3>偏旁 Components</h3>
+        <p>Learn the building blocks of HSK 1 characters — radicals like 氵 water, 讠 speech, and 女 woman. Spot them, then write them.</p>
+        <p className="fine" style={{ textAlign: 'left', margin: '0 0 10px' }}>{partsLearned}/{COMPONENTS.length} learned</p>
+        <button className="btn" onClick={() => go({ k: 'parts' })} data-testid="open-parts">Open components</button>
+      </div>
       <div className="card">
         <h3>Your progress</h3>
         <p>{prog.xp} 墨 ink · best streak {prog.best} day{prog.best === 1 ? "" : "s"} · {stats.seen} characters practiced · {stats.weak} weak</p>
@@ -312,6 +322,7 @@ function About({ prog, setProg }: { prog: P.Progress; setProg: (p: P.Progress) =
       <div className="card">
         <h3>How it works</h3>
         <p>Each lesson has about 5 characters. For each one: <b>watch</b> the stroke order, <b>trace</b> it over the outline, then <b>write</b> it from memory. A hint appears after a few missed strokes. Fewer mistakes, more stars. Characters you miss come back in <b>Review</b> sooner (spaced repetition: 1, 2, 4, 7, 15, 30 days).</p>
+        <p><b>Components</b> teaches common radicals and building blocks used in HSK 1 (recognize + write). Progress is saved separately on this device.</p>
         <p><b>Cards</b> are spaced-repetition flashcards (SM-2) for all {CHARS.length} characters: see the meaning, pīnyīn or character, <b>write it</b> on the pad, then grade yourself Again / Hard / Good / Easy. Turn the writing step off in Cards › Settings.</p>
       </div>
       <div className="card credits">
